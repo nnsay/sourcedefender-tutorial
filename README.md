@@ -6,6 +6,7 @@
 - [pyarmor(commercial)](https://pypi.org/project/pyarmor/): A tool used to obfuscate python scripts, bind obfuscated scripts to fixed machine or expire obfuscated scripts.
 - [PyObfuscator](https://github.com/mauricelambert/PyObfuscator/): This module obfuscates python code.
 - [pyconcrete](https://github.com/Falldog/pyconcrete): Protect your python script, encrypt it as .pye and decrypt when import it
+- [pyinstaller](https://pyinstaller.org/en/stable/): PyInstaller bundles a Python application and all its dependencies into a single package. The user can run the packaged app without installing a Python interpreter or any modules. PyInstaller supports Python 3.8 and newer, and correctly bundles many major Python packages such as numpy, matplotlib, PyQt, wxPython, and others.
 
 # 2. 运行和验证
 
@@ -14,10 +15,11 @@
 ## 2.1 安装依赖
 
 ```bash
+python3.11 -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
-pip install PyObfuscator
+pip install PyObfuscator pyinstaller
 PYCONCRETE_PASSPHRASE=sourcedefender CFLAGS="-Wno-implicit-function-declaration" pip install pyconcrete # https://github.com/Falldog/pyconcrete/issues/94
 ```
 
@@ -39,4 +41,67 @@ python main.pyc
 PyObfuscator main.py --output main-obfuscated.py
 
 python main-obfuscated.py
+```
+
+## 2.4 pyc 验证
+
+```bash
+python -m py_compile main.py
+
+python -m compileall main.py
+```
+
+## 2.5 pyinstaller 验证
+
+```bash
+# compile
+pyinstaller --onefile main.py
+
+# run
+./dist/main
+```
+
+## 2.5 反编译验证
+
+```bash
+# install
+git clone https://github.com/zrax/pycdc
+cd pycdc
+cmake .
+make
+make check
+cp pycdc ~/.local/bin
+
+# compile
+python -m py_compile main.py
+# decompile
+pycdc __pycache__/main.cpython-311.pyc
+```
+
+反编译结果:
+
+```python
+# Source Generated with Decompyle++
+# File: main.cpython-311.pyc (Python 3.11)
+
+import requests
+
+def get_github_status():
+Unsupported opcode: PUSH_EXC_INFO
+    api_url = 'https://www.githubstatus.com/api/v2/status.json'
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        status_data = response.json()
+        status = status_data.get('status')
+        description = status_data.get('body', { }).get('markdown')
+        print(f'''GitHub Status: {status}''')
+        print(f'''Status Description: {description}''')
+        return None
+    None(f'''Failed to retrieve GitHub status. Status code: {response.status_code}''')
+    return None
+# WARNING: Decompyle incomplete
+
+if __name__ == '__main__':
+    get_github_status()
+    return None
 ```

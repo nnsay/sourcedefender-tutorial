@@ -1,5 +1,8 @@
 .venv
+build
+dist
 *.pyc
 *.pye
+*.spec
 *-obfuscated.py
 deobfuscate.json
